@@ -1,12 +1,12 @@
 
 cmake_minimum_required (VERSION 2.6)
-project(libavcpp)
+project(libav++ CXX)
 
+include_directories( ./ )
 include_directories( ./include/ )
 include_directories( ${CMAKE_INSTALL_PREFIX}/include/ )
 include_directories( ${CMAKE_INSTALL_PREFIX}/include/fedlibrary/include )
 include_directories( ${CMAKE_INSTALL_PREFIX}/include/fedlibrary/template_include )
-
 
 IF(NOT CMAKE_BUILD_TYPE )
   SET(CMAKE_BUILD_TYPE Release CACHE STRING
@@ -30,8 +30,10 @@ ELSE()
      )
 ENDIF()
 
-
-
+set(  LIBAVCPP_BINARY_DIR 
+      ${CMAKE_CURRENT_BINARY_DIR}
+   )
+   
 set(  LIBAVCPP_INCLUDE 
         ./include/avfps.h
         ./include/avcolor.h 
@@ -79,27 +81,6 @@ set(  LIBAVCPP_LIBRARIES
       swscale
 )
 
-set(  DECODER_LIBRARIES
-      libavcpp${LIBAVCPP_VERSION}
-)
-
-set(  ENCODER_LIBRARIES
-      libavcpp${LIBAVCPP_VERSION}
-      SDL2
-)
-
-set(  RENDER_LIBRARIES
-      libavcpp${LIBAVCPP_VERSION}
-      X11 
-      glut
-      GL
-      GLU
-)
-
-set(  RECORDER_LIBRARIES
-      libavcpp${LIBAVCPP_VERSION}
-)
-
 IF( CMAKE_BUILD_TYPE STREQUAL "Debug" )
 add_definitions(
                 -ggdb3
@@ -120,23 +101,17 @@ add_definitions(
                 -D_ENABLE_ASSERTION_TRACING
                )
 
-
 add_library   ( av++${LIBAVCPP_VERSION}  SHARED ${LIBAVCPP_SRC} )
-#add_executable( libavcppd                           ${LIBAVCPP_SRC} main.cpp )
-#add_executable( decoder                             decoder.cpp ) 
-#add_executable( encoder                             encoder.cpp )
-#add_executable( encoder2                            encoder2.cpp )
-#add_executable( render                              render.cpp  )
-#add_executable( img2ppm                             img2ppm.cpp )
-
 
 target_link_libraries( av++${LIBAVCPP_VERSION}  ${LIBAVCPP_LIBRARIES} )
-#target_link_libraries( libavcppd                    ${LIBAVCPP_LIBRARIES} )
-#target_link_libraries( decoder                      ${DECODER_LIBRARIES}  )
-#target_link_libraries( encoder                      ${ENCODER_LIBRARIES}  )
-#target_link_libraries( encoder2                     ${ENCODER_LIBRARIES}  )
-#target_link_libraries( render                       ${RENDER_LIBRARIES}   )
-#target_link_libraries( img2ppm                      ${RENDER_LIBRARIES}   )
+
 
 install( TARGETS av++${LIBAVCPP_VERSION}     LIBRARY DESTINATION lib )
 install( FILES   ${LIBAVCPP_INCLUDE}                 DESTINATION include/libav++ )
+
+
+# Build examples 
+add_subdirectory( examples )
+
+
+
