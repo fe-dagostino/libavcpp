@@ -21,7 +21,7 @@ set(  ENCODER_LIBRARIES
       av++${LIBAVCPP_VERSION}
 )
 
-set(  RENDER_LIBRARIES
+set(  OGL_CUBE_LIBRARIES
       av++${LIBAVCPP_VERSION}
       X11 
       glut
@@ -29,16 +29,15 @@ set(  RENDER_LIBRARIES
       GLU
 )
 
-set(  RECORDER_LIBRARIES
-      av++${LIBAVCPP_VERSION}
-)
 
-add_executable( decoder                              decoder.cpp ) 
-add_executable( img2ppm                              img2ppm.cpp )
-add_executable( encoder                              encoder.cpp )
+add_executable( decoder                              decoder.cpp  ) 
+add_executable( img2ppm                              img2ppm.cpp  )
+add_executable( encoder                              encoder.cpp  )
+add_executable( ogl_cube                             ogl_cube.cpp )
 
 
-target_link_libraries( decoder                       ${DECODER_LIBRARIES}  )
-target_link_libraries( img2ppm                       ${IMG2PPM_LIBRARIES}  )
-target_link_libraries( encoder                       ${ENCODER_LIBRARIES}  )
+target_link_libraries( decoder                       ${DECODER_LIBRARIES}   )
+target_link_libraries( img2ppm                       ${IMG2PPM_LIBRARIES}   )
+target_link_libraries( encoder                       ${ENCODER_LIBRARIES}   )
+target_link_libraries( ogl_cube                      ${OGL_CUBE_LIBRARIES}  )
 
