@@ -148,7 +148,7 @@ public:
   
 private:
   IAVDecoderEvents*  m_pEvents;
-  bool 		     m_bAutoRelease;
+  bool               m_bAutoRelease;
   CAVInputFile       m_avInputFile;
   double             m_dStartTime;
   double             m_dBufferTime;
