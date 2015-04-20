@@ -25,8 +25,10 @@ Please refer to the Building pages in the [wiki](https://github.com/fe-dagostino
                    file used as background, in order to cover the scope background image file should have transparent areas
                    where the video will be visible. Output file will be an mp4 file.
  - ogl_cube.cpp    one more example using integration of libav++ with an opengl context. In this example an input stream
-                   will be used to create dynamic textures and to mapping it to a cube. 
+                   will be used to create dynamic textures and to mapping it to a cube.
+
                    ![alt tag](https://raw.github.com/fe-dagostino/libavcpp/master/examples/res/ogl_cube.png)
+                   
                    Orginal code for opengl cube has been taken from http://nehe.gamedev.net/ and modified on order 
                    to replace static textures with a dynamic one.
  
