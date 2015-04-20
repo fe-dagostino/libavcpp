@@ -28,10 +28,7 @@ class CAVApplication
 {
 public:
   
-  CAVApplication();
-  
-  virtual ~CAVApplication();
-  
+ 
   /**
    * Inialize globals requirements.
    */
