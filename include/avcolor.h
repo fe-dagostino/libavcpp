@@ -42,7 +42,7 @@ public:
   CAVColor( u_int8_t r, u_int8_t g, u_int8_t b, u_int8_t a );
   
   /***/
-  virtual ~CAVColor();
+  ~CAVColor();
 
   /**
    * Update object values with specified rgba values.
