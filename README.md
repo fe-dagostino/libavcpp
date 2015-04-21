@@ -1,3 +1,8 @@
+<a href="https://scan.coverity.com/projects/4899">
+  <img alt="Coverity Scan Build Status"
+       src="https://scan.coverity.com/projects/4899/badge.svg"/>
+</a>
+
 # libav++
 C++ Wrapper and Facilities to simplify libav usage
 
