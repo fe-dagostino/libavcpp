@@ -16,7 +16,7 @@
 */
 
 
-#include "../include/avfiltergraph.h"
+#include "../include/videofiltergraph.h"
 
 #include "FString.h"
 
@@ -27,45 +27,44 @@ extern "C"
 #include <libavfilter/version.h>
 #include <libavfilter/avfilter.h>
 #include <libavfilter/avfiltergraph.h>
+#include <libavfilter/buffersink.h>
 #include <libavfilter/buffersrc.h>
-#include <libavfilter/vsrc_buffer.h>
 }
 
 
 namespace libavcpp
 {
 
-CAVFilterGraph::CAVFilterGraph( const FString& sFilters )
- : m_sFilters( sFilters ), m_pFilterCtxIN( NULL ), m_pFilterCtxOUT( NULL ), m_bValid( false )
+CVideoFilterGraph::CVideoFilterGraph( const FString& sFilters )
+ : IAVFilterGraph( AVMEDIA_TYPE_VIDEO ),  m_sFilters( sFilters ), 
+   m_pFilterCtxIN( NULL ), m_pFilterCtxOUT( NULL ), m_pFilterCtxFTM( NULL )
 {
-  m_pFilterGraph = avfilter_graph_alloc();
+  
 }
     
-CAVFilterGraph::~CAVFilterGraph()
+CVideoFilterGraph::~CVideoFilterGraph()
 {
-  if ( m_pFilterGraph != NULL )
-  {
-    avfilter_graph_free( &m_pFilterGraph );
-    m_pFilterGraph = NULL;
-  }
 }
 
-AVResult CAVFilterGraph::init( const AVCodecContext* pAVCodecCtx )
+AVResult CVideoFilterGraph::init( const AVCodecContext* pAVCodecCtx )
 {
   if ( m_sFilters.IsEmpty() )
     return eAVInvalidParameters;
   if ( pAVCodecCtx == NULL )
     return eAVInvalidParameters;
-    
+
+  if ( pAVCodecCtx->codec_type != AVMEDIA_TYPE_VIDEO )
+    return eAVInvalidParameters;
+
   return init( 
-	      pAVCodecCtx->width, pAVCodecCtx->height,
-	      pAVCodecCtx->pix_fmt,
-	      pAVCodecCtx->time_base.num, pAVCodecCtx->time_base.den,
-	      pAVCodecCtx->sample_aspect_ratio.num, pAVCodecCtx->sample_aspect_ratio.den
-	     );
+                    pAVCodecCtx->width, pAVCodecCtx->height,
+                    pAVCodecCtx->pix_fmt,
+                    pAVCodecCtx->time_base.num, pAVCodecCtx->time_base.den,
+                    pAVCodecCtx->sample_aspect_ratio.num, pAVCodecCtx->sample_aspect_ratio.den
+                 );
 }
 
-AVResult CAVFilterGraph::init( 
+AVResult CVideoFilterGraph::init( 
 			      int iWidth, int iHeight,
 			      PixelFormat pixFormat,
 			      int iTimebaseNum, int iTimebaseDen,
@@ -80,7 +79,7 @@ AVResult CAVFilterGraph::init(
   if ( pFilterIN == NULL )
     return eAVFilterNotFound;
   
-  AVFilter* pFilterOUT = avfilter_get_by_name( "nullsink" );
+  AVFilter* pFilterOUT = avfilter_get_by_name( "buffersink" );
   if ( pFilterOUT == NULL )
     return eAVFilterNotFound;
     
@@ -93,22 +92,36 @@ AVResult CAVFilterGraph::init(
   iRetVal = avfilter_graph_create_filter( &m_pFilterCtxOUT, pFilterOUT, "output", NULL, NULL, m_pFilterGraph ); 
   CHECK_AVRESULT( iRetVal )
   
-  
-  AVFilterInOut *outputs = (AVFilterInOut *)av_malloc(sizeof(AVFilterInOut));
-  AVFilterInOut *inputs  = (AVFilterInOut *)av_malloc(sizeof(AVFilterInOut));
-  
-  /* Endpoints for the filter graph. */
-  outputs->name       = av_strdup("in");
-  outputs->filter_ctx = m_pFilterCtxIN;
-  outputs->pad_idx    = 0;
-  outputs->next       = NULL;
-  inputs->name        = av_strdup("out");
-  inputs->filter_ctx  = m_pFilterCtxOUT;
-  inputs->pad_idx     = 0;
-  inputs->next        = NULL;
-  
-  iRetVal = avfilter_graph_parse(m_pFilterGraph, (const char*)m_sFilters, inputs, outputs, NULL);
+  iRetVal = avfilter_graph_create_filter( &m_pFilterCtxFTM, avfilter_get_by_name("format"), "format", "yuv420p", NULL, m_pFilterGraph);
   CHECK_AVRESULT( iRetVal )
+  
+  iRetVal = avfilter_link(m_pFilterCtxFTM, 0, m_pFilterCtxOUT, 0);
+  CHECK_AVRESULT( iRetVal )
+  
+  if (m_sFilters.IsEmpty())
+  {
+    iRetVal =  avfilter_link(m_pFilterCtxIN, 0, m_pFilterCtxFTM, 0);
+    CHECK_AVRESULT( iRetVal )
+  }
+  else
+  {
+    AVFilterInOut *outputs = avfilter_inout_alloc();
+    AVFilterInOut *inputs  = avfilter_inout_alloc();
+  
+    /* Endpoints for the filter graph. */
+    outputs->name       = av_strdup("in");
+    outputs->filter_ctx = m_pFilterCtxIN;
+    outputs->pad_idx    = 0;
+    outputs->next       = NULL;
+    
+    inputs->name        = av_strdup("out");
+    inputs->filter_ctx  = m_pFilterCtxFTM;
+    inputs->pad_idx     = 0;
+    inputs->next        = NULL;
+    
+    iRetVal = avfilter_graph_parse(m_pFilterGraph, (const char*)m_sFilters, inputs, outputs, NULL);
+    CHECK_AVRESULT( iRetVal )
+  } 
 
   iRetVal = avfilter_graph_config(m_pFilterGraph, NULL);
   CHECK_AVRESULT( iRetVal )
@@ -118,50 +131,31 @@ AVResult CAVFilterGraph::init(
   return eAVSucceded;
 }
 
-AVResult CAVFilterGraph::push( AVFrame* pFrame, const AVRational& aspectRatio )
+AVResult CVideoFilterGraph::push( AVFrame* pFrame )
 {
   int       iRetVal = 0;
   
-  iRetVal = av_vsrc_buffer_add_frame( m_pFilterCtxIN, pFrame, pFrame->pts, aspectRatio );
+  iRetVal = av_buffersrc_add_frame( m_pFilterCtxIN, pFrame );
   CHECK_AVRESULT( iRetVal )
   
   return eAVSucceded;
 }
 
-AVResult CAVFilterGraph::push( AVFrame* pFrame, const AVCodecContext* pCodecCtx )
+AVResult CVideoFilterGraph::pop( AVFrame* pFrame )
 {
-  return push( pFrame, pCodecCtx->sample_aspect_ratio );
-}
-
-AVResult CAVFilterGraph::pop( bool &bMore, AVFilterBufferRef*& pAVFilterBufferRef )
-{
-  int           iRetVal  = 0;
-  AVFilterLink* pOutLink = m_pFilterCtxOUT->inputs[0];
+  int       iRetVal = 0;
   
-  // Check amount of available frames.  
-  iRetVal  = avfilter_poll_frame( pOutLink );
+  iRetVal = av_buffersink_get_frame( m_pFilterCtxOUT, pFrame);
   CHECK_AVRESULT( iRetVal )
-  
-  // Useful info for application level. 
-  // Depends on filters one single input frame can produce one or more output frames.
-  bMore              = (iRetVal > 1);
-  pAVFilterBufferRef = NULL;
-  
-  if ( iRetVal )
-  {
-      iRetVal = avfilter_request_frame( pOutLink );  
-      
-      pAVFilterBufferRef = pOutLink->cur_buf;
-  }
   
   return eAVSucceded;
 }
 
-AVResult  CAVFilterGraph::unRef( AVFilterBufferRef*& pAVFilterBufferRef )
+AVResult  CVideoFilterGraph::unRef( AVFrame*& pFrame )
 {
-  avfilter_unref_buffer(pAVFilterBufferRef);
+  av_frame_unref(pFrame);
   
-  pAVFilterBufferRef = NULL;
+  pFrame = NULL;
   
   return eAVSucceded;
 }

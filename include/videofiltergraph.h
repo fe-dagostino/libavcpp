@@ -15,97 +15,76 @@
     along with libav++.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef AVFILTERGRAPH_H
-#define AVFILTERGRAPH_H
+#ifndef VIDEO_FILTERGRAPH_H
+#define VIDEO_FILTERGRAPH_H
 
 #include "avcommon.h"
+#include "iavfiltergraph.h"
+
 #include "FString.h"
 
 USING_NAMESPACE_FED
 
-extern "C"
-{ 
-#include <libavutil/pixfmt.h>
-#include <libavutil/rational.h>
-}
-
-struct AVFrame;
-struct AVFilterGraph;
-struct AVCodecContext;
-struct AVFilterContext;
-struct AVFilterBufferRef;
-
 namespace libavcpp
 {
   
-class CAVFilterGraph
+class CVideoFilterGraph : public IAVFilterGraph
 {
 public:
   /**
    * Empty constructor.
    */
-  CAVFilterGraph( const FString& sFilters );
+  CVideoFilterGraph( const FString& sFilters );
   /**
    * Destructor method. 
    * Automatically release all resources, so if decoder status
    * is still open it will be closed during destroy.
    */
-  virtual ~CAVFilterGraph();
-  
-  /**
-   * Check if current instance has been initialized or not.
-   * @return true in case current object instance has been initialized 
-   *         successful false otherwhise.
-   */
-  inline bool     isValid() const
-  { return m_bValid; }
+  virtual ~CVideoFilterGraph();
   
   /**
    * .
    */
   AVResult init( const AVCodecContext* pCodecCtx );
+
+  /**
+   * Push frame into filter chain for processing.
+   * @param pFrame      input frame to be processed by filter chain.
+   */
+  AVResult push( AVFrame* pFrame );
   
+  /**
+   * Pop filtered buffer.
+   * Note: depending on filter/s applied one input frame can generate more
+   *       than one output frame, so will be a good pratics to loop over 
+   *       pop() until it return eAVSucceded . 
+   */
+  AVResult pop( AVFrame* pFrame );
+
+  /**
+   * Unference puffer. Must be called on each buffer returned from pop() method.
+   * @param pFrame     buffer reference to be mark as unreferenced so it will
+   *                   be released.
+   */
+  AVResult unRef( AVFrame*& pFrame );
+
+private:
   /**
    * .
    */
   AVResult init(
-		int iWidth, int iHeight,
-		PixelFormat pixFormat,
+		int iWidth, int iHeight, PixelFormat pixFormat,
 		int iTimebaseNum, int iTimebaseDen,
 		int iAspectRatioX, int iAspectRatioY
 	      );  
   
-  /**
-   * Push frame into filter chain for processing.
-   * @param pFrame      input frame to be processed by filter chain.
-   * @param aspectRatio aspect ratio for video frame.
-   */
-  AVResult push( AVFrame* pFrame, const AVRational& aspectRatio );
-  /**
-   * Push frame into filter chain for processing.
-   * @param pFrame      input frame to be processed by filter chain.
-   * @param pCodecCtx   codec contex where to retrieve aspect ratio.
-   */
-  AVResult push( AVFrame* pFrame, const AVCodecContext* pCodecCtx );
-  /**
-   * Pop filtered buffer.
-   */
-  AVResult pop( bool &bMore, AVFilterBufferRef*& pAVFilterBufferRef );
-  /**
-   * Unference puffer. Must be called on each buffer returned from pop() method.
-   * @param pAVFilterBufferRef buffer reverence to be mark as unreferenced so it will
-   *                           be released.
-   */
-  AVResult unRef( AVFilterBufferRef*& pAVFilterBufferRef );
-
 private:
   FString           m_sFilters;
-  AVFilterGraph*    m_pFilterGraph;
   AVFilterContext*  m_pFilterCtxIN;
   AVFilterContext*  m_pFilterCtxOUT;
-  bool              m_bValid;
+  AVFilterContext*  m_pFilterCtxFTM;
 };
 
 } // namespace libavcpp
 
-#endif // AVFILTERGRAPH_H
+#endif // VIDEO_FILTERGRAPH_H
