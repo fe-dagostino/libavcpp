@@ -71,7 +71,13 @@ public:
   inline bool          compare( const CAVColor& cr ) const
   { return ((m_color&cr.m_color) == m_color); }
   
- 
+  /* overloading operator */
+  inline bool          operator ==( const CAVColor& cr ) const
+  { return ((m_color&cr.m_color) == m_color); }
+  /* overloading operator */
+  inline bool          operator !=( const CAVColor& cr ) const
+  { return ((m_color&cr.m_color) != m_color); }
+  
 private:
 
   u_int32_t   m_color;
