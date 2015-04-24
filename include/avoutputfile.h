@@ -44,25 +44,25 @@ public:
   {
     public:
       CAVStream()
-        : m_mediaType( AVMEDIA_TYPE_UNKNOWN ), m_codecID( CODEC_ID_NONE ), m_iProfile( 0 )
+        : m_mediaType( AVMEDIA_TYPE_UNKNOWN ), m_codecID( AV_CODEC_ID_NONE ), m_iProfile( 0 )
       {}
       
-      CAVStream( AVMediaType mediaType, CodecID codecID, int iProfile )
+      CAVStream( AVMediaType mediaType, AVCodecID codecID, int iProfile )
         : m_mediaType( mediaType ), m_codecID( codecID ), m_iProfile( iProfile )
       {}
 
       inline AVMediaType  getMediaType() const
       { return m_mediaType; }
       
-      inline CodecID 	  getCodecID() const
+      inline AVCodecID    getCodecID() const
       { return m_codecID;   }
       
-      inline int 	  getProfile() const
+      inline int          getProfile() const
       { return m_iProfile;   }
   
     private:
       AVMediaType  m_mediaType;
-      CodecID 	   m_codecID;
+      AVCodecID    m_codecID;
       int          m_iProfile;
   };
   
@@ -137,9 +137,9 @@ public:
 private:
 
 private:
-  AVStream*        add_video_stream( int iStreamIndex, enum CodecID codec_id, int profile );
+  AVStream*        add_video_stream( int iStreamIndex, enum AVCodecID codec_id, int profile );
 
-  AVStream*        add_audio_stream( int iStreamIndex, enum CodecID codec_id, int profile );
+  AVStream*        add_audio_stream( int iStreamIndex, enum AVCodecID codec_id, int profile );
 
   bool             ofs_open( const char* pFilename );
   bool             ofs_write( uint8_t *pBuffer, int iBufSize );
