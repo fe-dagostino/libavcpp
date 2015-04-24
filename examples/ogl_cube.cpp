@@ -22,7 +22,7 @@
 #include "./include/avapplication.h"
 #include "./include/avdecoder.h"
 #include "./include/avimage.h"
-#include "./include/avfiltergraph.h"
+#include "./include/videofiltergraph.h"
 
 /* ascii codes for various special keys */
 #define ESCAPE 27
@@ -61,16 +61,16 @@ public:
   virtual bool   OnVideoFrame( const AVFrame* pAVFrame, const AVStream* pAVStream, const AVCodecContext* pAVCodecCtx, double time )
   {
      //m_avImage.init( pAVFrame, pAVCodecCtx, 300, 300, PIX_FMT_BGR24 );
-     //m_avImage.init( pAVFrame, pAVCodecCtx, -1, -1 );
+     //m_avImage.init( pAVFrame, pAVCodecCtx, -1, -1, PIX_FMT_RGBA );
      
      return true;
   }
   
-  virtual bool   OnFilteredVideoFrame( const AVFilterBufferRef* pAVFilterBufferRef, const AVStream* pAVStream, const AVCodecContext* pAVCodecCtx, double pst )
+  virtual bool   OnFilteredVideoFrame( const AVFrame* pAVFrame, const AVStream* pAVStream, const AVCodecContext* pAVCodecCtx, double pst )
   {
     
     /* Nothing to do */
-    m_avImage.init( pAVFilterBufferRef, pAVCodecCtx->width, pAVCodecCtx->height, -1, -1, PIX_FMT_RGBA );
+    m_avImage.init( pAVFrame, pAVCodecCtx, -1, -1, PIX_FMT_RGBA );
     
     return true;
   }
@@ -79,6 +79,13 @@ public:
   {
      return true;
   }
+  
+  virtual bool   OnFilteredAudioFrame( const AVFrame* pAVFrame, const AVStream* pAVStream, const AVCodecContext* pAVCodecContext, double pst )
+  {
+    /* Nothing to do */  
+    return true;
+  }
+
   
 private:
   CAVImage   m_avImage;
@@ -236,7 +243,7 @@ GLvoid InitGL(GLsizei Width, GLsizei Height)	// We call this right after our Ope
     _avDecoder.open( pFileName, 0.0 );
     _avDecoder.setDecoderEvents( new AVDecoderEventsImp, true );
 
-    CAVFilterGraph* pAVFilterGraph = new CAVFilterGraph( "frei0r=lenscorrection:0.5:0.5:0.38:0.5" );
+    IAVFilterGraph* pAVFilterGraph = new CVideoFilterGraph( "frei0r=lenscorrection:0.5|0.5|0.38|0.5" );
 
     //_avDecoder.setFilterGraph( new CAVFilterGraph( "frei0r=lenscorrection:0.5:0.5:0.37:0.5,format=yuv420p" ) );
     _avDecoder.setFilterGraph( pAVFilterGraph );

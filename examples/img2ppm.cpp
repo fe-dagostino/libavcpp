@@ -58,9 +58,10 @@ public:
      return true;
   }
   
-  virtual bool   OnFilteredVideoFrame( const AVFilterBufferRef* pAVFilterBufferRef, const AVStream* pAVStream, const AVCodecContext* pAVCodecCtx, double pst )
+  virtual bool   OnFilteredVideoFrame( const AVFrame* pAVFrame, const AVStream* pAVStream, const AVCodecContext* pAVCodecCtx, double pst )
   {
     /* Nothing to do */  
+    return true;
   }
   
   virtual bool   OnAudioFrame( const AVFrame* pAVFrame, const AVStream* pAVStream, const AVCodecContext* pAVCodecCtx, double time )
@@ -68,6 +69,12 @@ public:
      return true;
   }
   
+  virtual bool   OnFilteredAudioFrame( const AVFrame* pAVFrame, const AVStream* pAVStream, const AVCodecContext* pAVCodecContext, double pst )
+  {
+    /* Nothing to do */  
+    return true;
+  }
+
 private:
   int              m_iVideoFrame;
   CAVImage         m_avImage;

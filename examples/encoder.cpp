@@ -33,7 +33,7 @@ public:
     : m_iVideoFrame(0), m_bStartRec( false )
   {
     std::cout << "Open Encoder" << std::endl;
-    if ( m_avEncoder.open( pFilename, 0, 1366, 768, PIX_FMT_YUV420P, 30/*FPS*/, 10/*GOP*/, 4000000/*bit rate*/, CODEC_ID_MPEG4, FF_PROFILE_MPEG4_ADVANCED_REAL_TIME ) != eAVSucceded )
+    if ( m_avEncoder.open( pFilename, 0, 1366, 768, PIX_FMT_YUV420P, 30/*FPS*/, 10/*GOP*/, 4000000/*bit rate*/, AV_CODEC_ID_MPEG4, FF_PROFILE_MPEG4_ADVANCED_REAL_TIME ) != eAVSucceded )
     {
       std::cout << "Failed to open Encoder" << std::endl;
       exit(-1);
@@ -80,7 +80,7 @@ public:
       int dstPosX = 700;
       int dstPosY = 406;
       
-      printf( "Input Video Frame [%d] %dx%d\n", m_iVideoFrame, pAVFrame->owner->width, pAVFrame->owner->height );
+      printf( "Input Video Frame [%d] %dx%d\n", m_iVideoFrame, pAVCodecCtx->width, pAVCodecCtx->height );
       if ( m_avInputImage.init( pAVFrame, pAVCodecCtx, frameW, frameH, PIX_FMT_RGB24 ) != eAVSucceded )
       {
 	  std::cout << "Error on m_avImage.init()" << std::endl;
@@ -107,9 +107,10 @@ public:
     return true;
   }
   
-  virtual bool   OnFilteredVideoFrame( const AVFilterBufferRef* pAVFilterBufferRef, const AVStream* pAVStream, const AVCodecContext* pAVCodecCtx, double pst )
+  virtual bool   OnFilteredVideoFrame( const AVFrame* pAVFrame, const AVStream* pAVStream, const AVCodecContext* pAVCodecCtx, double pst )
   {
     /* Nothing to do */  
+    return true;
   }
   
   virtual bool   OnAudioFrame( const AVFrame* pAVFrame, const AVStream* pAVStream, const AVCodecContext* pAVCodecCtx, double time )
@@ -117,6 +118,12 @@ public:
     return true;
   }
   
+  virtual bool   OnFilteredAudioFrame( const AVFrame* pAVFrame, const AVStream* pAVStream, const AVCodecContext* pAVCodecContext, double pst )
+  {
+    /* Nothing to do */  
+    return true;
+  }
+
 private:
   bool             m_bStartRec;
   double           m_dStart;

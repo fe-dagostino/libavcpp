@@ -56,15 +56,22 @@ public:
      return true;
   }
   
-  virtual bool   OnFilteredVideoFrame( const AVFilterBufferRef* pAVFilterBufferRef, const AVStream* pAVStream, const AVCodecContext* pAVCodecContext, double pst )
+  virtual bool   OnFilteredVideoFrame( const AVFrame* pAVFrame, const AVStream* pAVStream, const AVCodecContext* pAVCodecContext, double pst )
   {
     /* Nothing to do */  
+    return true;
   }
   
   virtual bool   OnAudioFrame( const AVFrame* pAVFrame, const AVStream* pAVStream, const AVCodecContext* pAVCodecContext, double time )
   {
      printf( "Audio Frame=%d time=%f\n", m_iAudioFrame++, time );
      return true;
+  }
+
+  virtual bool   OnFilteredAudioFrame( const AVFrame* pAVFrame, const AVStream* pAVStream, const AVCodecContext* pAVCodecContext, double pst )
+  {
+    /* Nothing to do */  
+    return true;
   }
 
 private:
