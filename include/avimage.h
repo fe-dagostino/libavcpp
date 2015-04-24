@@ -105,7 +105,8 @@ public:
   
   /**
    */
-  const AVFrame*          getFrame() const { return m_pFrame; }
+  inline const AVFrame*   getFrame() const 
+  { return m_pFrame; }
   
   /**
    * Return bounding rect in relative coordinate system.
