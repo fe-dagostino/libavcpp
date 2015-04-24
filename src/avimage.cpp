@@ -62,13 +62,20 @@ public:
     return true;
   }
   
-  virtual bool   OnFilteredVideoFrame( const AVFilterBufferRef* pAVFilterBufferRef, const AVStream* pAVStream, const AVCodecContext* pAVCodecContext, double pst )
+  virtual bool   OnFilteredVideoFrame( const AVFrame* pAVFrame, const AVStream* pAVStream, const AVCodecContext* pAVCodecContext, double pst )
   {
     /* Nothing to do */  
+    return true;
   }
   
   virtual bool   OnAudioFrame( const AVFrame* pAVFrame, const AVStream* pAVStream, const AVCodecContext* pAVCodecContext, double time )
   {  
+    /* Nothing to do */  
+    return true;
+  }
+  
+  virtual bool   OnFilteredAudioFrame( const AVFrame* pAVFrame, const AVStream* pAVStream, const AVCodecContext* pAVCodecContext, double pst )
+  {
     /* Nothing to do */  
     return true;
   }
@@ -209,7 +216,7 @@ AVResult    CAVImage::init( const AVFrame* pFrame,
         }
 
         // Allocate new buffer.
-	m_pFrame = avcodec_alloc_frame();
+	m_pFrame = av_frame_alloc();
         if ( m_pFrame == NULL )
             return eAVTooLargeBufferRequired;
 
@@ -278,7 +285,7 @@ AVResult    CAVImage::init( const CAVImage& rImage,
         }
 
         // Allocate new buffer.
-	m_pFrame = avcodec_alloc_frame();
+	m_pFrame = av_frame_alloc();
         if ( m_pFrame == NULL )
             return eAVTooLargeBufferRequired;
 
@@ -359,7 +366,7 @@ AVResult    CAVImage::init( const AVFilterBufferRef* pAVFilterBufferRef,
       }
 
       // Allocate new buffer.
-      m_pFrame = avcodec_alloc_frame();
+      m_pFrame = av_frame_alloc();
       if ( m_pFrame == NULL )
 	  return eAVTooLargeBufferRequired;
 
