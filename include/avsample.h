@@ -65,17 +65,15 @@ public:
    */
   inline int                     getMaxBuffers() const
   { return AV_NUM_DATA_POINTERS; }
-  /***/
-  inline uint8_t *               getData( int ndx ) const
-  { return m_pAudioData[ndx]; }
-  /***/
-  inline int                     getSize( int ndx ) const 
-  { return m_iLineSize[ndx]; }
+  
+  /**
+   */
+  inline const AVFrame*          getFrame() const 
+  { return m_pFrame; }
   
 private:  
+  AVFrame*                m_pFrame;
   enum AVSampleFormat     m_eFormat;
-  uint8_t *               m_pAudioData[AV_NUM_DATA_POINTERS];
-  int                     m_iLineSize[AV_NUM_DATA_POINTERS];
   int                     m_iChannels;
   int                     m_iSamples;
   int                     m_iAlign;

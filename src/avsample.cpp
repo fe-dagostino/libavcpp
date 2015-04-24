@@ -17,30 +17,22 @@
 
 
 #include "../include/avsample.h"
-
+#include <memory.h>
 
 namespace libavcpp
 {
 
 CAVSample::CAVSample()
- : m_eFormat( AV_SAMPLE_FMT_NONE )
+ : m_eFormat( AV_SAMPLE_FMT_NONE ), m_pFrame( NULL )
 {
-  for ( register int ndx=0; ndx < AV_NUM_DATA_POINTERS; ndx++ )
-  {
-    m_pAudioData[ndx] = NULL;
-    m_iLineSize[ndx]  = 0;
-  }
 }
 
 CAVSample::~CAVSample()
 {
-  for ( register int ndx=0; ndx < AV_NUM_DATA_POINTERS; ndx++ )
-  {  
-    if ( m_pAudioData[ndx] != NULL )
-    {
-      av_free(m_pAudioData[ndx]);
-      m_pAudioData[ndx] = NULL;
-    }
+  if ( m_pFrame != NULL )
+  {
+    av_frame_free( &m_pFrame );
+    m_pFrame = NULL;
   }
 }
 
@@ -56,23 +48,24 @@ AVResult   CAVSample::init(
   m_eFormat    = pAVCodecCtx->sample_fmt;
   m_iAlign     = (pAVCodecCtx->block_align==0)?1:pAVCodecCtx->block_align;
   
-  for ( register int ndx=0; ndx < AV_NUM_DATA_POINTERS; ndx++ )
+  if ( pFrame != NULL )
   {
-    if ( pFrame->linesize[ndx] > 0 )
+    m_pFrame = av_frame_alloc();
+    if ( pFrame == NULL ) 
+      return eAVNotEnoughMemory;
+    
+    m_pFrame->format         = pFrame->format;
+    m_pFrame->nb_samples     = pFrame->nb_samples;
+    m_pFrame->sample_rate    = pFrame->sample_rate;
+    m_pFrame->channel_layout = pFrame->channel_layout;
+    
+    if (m_pFrame->nb_samples) 
     {
-      m_pAudioData[ndx] = (uint8_t *)av_realloc( m_pAudioData[ndx], pFrame->linesize[ndx] );
-      m_iLineSize[ndx]  = pFrame->linesize[ndx];
-      
-      memcpy( m_pAudioData[ndx], pFrame->data[ndx], m_iLineSize[ndx] );
+      if ( av_frame_get_buffer( m_pFrame, m_iAlign ) != 0 )
+        return eAVNotEnoughMemory;
     }
-    else
-    {
-      if ( m_pAudioData[ndx] != NULL )
-	av_free( m_pAudioData[ndx] );
-      
-      m_pAudioData[ndx] = NULL;
-      m_iLineSize[ndx]  = 0;
-    }
+    
+    av_frame_copy( m_pFrame, pFrame );    
   }
   
   return eAVSucceded;
