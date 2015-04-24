@@ -21,7 +21,7 @@
 
 #include "avcommon.h"
 #include "avinputfile.h"
-#include "avfiltergraph.h"
+#include "iavfiltergraph.h"
 
 namespace libavcpp
 {
@@ -53,15 +53,22 @@ public:
     /**
      *  Event will be raised for each frame coming from the stream.
      *  Return value true in order to continue decoding, false to interrupt.
-     *  Note: this event will be raised for each frame.
+     *  Note: this event will be raised for each filtered video frame.
      */
-    virtual bool   OnFilteredVideoFrame( const AVFilterBufferRef* pAVFilterBufferRef, const AVStream* pAVStream, const AVCodecContext* pAVCodecContext, double pts ) = 0;
+    virtual bool   OnFilteredVideoFrame( const AVFrame* pAVFrame, const AVStream* pAVStream, const AVCodecContext* pAVCodecContext, double pts ) = 0;
     
     /**
      *  Event will be raised for each frame coming from the stream.
      *  Return value true in order to continue decoding, false to interrupt.
      */
     virtual bool   OnAudioFrame( const AVFrame* pAVFrame, const AVStream* pAVStream, const AVCodecContext* pAVCodecContext, double pts ) = 0;
+
+    /**
+     *  Event will be raised for each frame coming from the stream.
+     *  Return value true in order to continue decoding, false to interrupt.
+     *  Note: this event will be raised for each filtered audio frame.
+     */
+    virtual bool   OnFilteredAudioFrame( const AVFrame* pAVFrame, const AVStream* pAVStream, const AVCodecContext* pAVCodecContext, double pts ) = 0;
     
 };
 
@@ -135,17 +142,22 @@ public:
   
   /**
    */
-  virtual CAVFilterGraph* setFilterGraph( CAVFilterGraph* pAVFilterGraph );
+  virtual IAVFilterGraph* setFilterGraph( IAVFilterGraph* pAVFilterGraph );
   
   /**
    */
-  virtual CAVFilterGraph* getFilterGraph() const;
+  virtual IAVFilterGraph* getFilterGraph( AVMediaType mt ) const;
   
 
   /**
    */
   static double    getTime();
-  
+private:
+  /**
+   * Return AVFilterGraph index
+   */
+  int              getFilterGraphIndex( AVMediaType mt ) const;
+
 private:
   IAVDecoderEvents*  m_pEvents;
   bool               m_bAutoRelease;
@@ -153,7 +165,7 @@ private:
   double             m_dStartTime;
   double             m_dBufferTime;
   mutable FMutex     m_mtxFilterGraph;
-  CAVFilterGraph*    m_pAVFilterGraph;
+  IAVFilterGraph*    m_pAVFilterGraph[2];
 };
 
 }//namespace libavcpp

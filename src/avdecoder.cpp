@@ -31,6 +31,7 @@ extern "C"
 #include <libswscale/swscale.h>
 #include <libavfilter/avfilter.h>
 #include <libavfilter/avfiltergraph.h>
+#include <libavutil/time.h>
 }
 
 namespace libavcpp
@@ -41,7 +42,7 @@ CAVDecoder::CAVDecoder()
   m_bAutoRelease( true ),
   m_dStartTime( 0.0 ),
   m_dBufferTime( 0.0 ),
-  m_pAVFilterGraph( NULL )
+  m_pAVFilterGraph( { NULL, NULL } )
 {
 
 }
@@ -62,12 +63,16 @@ CAVDecoder::~CAVDecoder()
     delete m_pEvents;
     m_pEvents = NULL;
   }
-  
-  if ( m_pAVFilterGraph != NULL )
+
+  for ( int i = 0; i < 2; i++ )
   {
-    delete m_pAVFilterGraph;
-    m_pAVFilterGraph = NULL;
+    if ( m_pAVFilterGraph[i] != NULL )
+    {
+      delete m_pAVFilterGraph[i];
+      m_pAVFilterGraph[i] = NULL;
+    }
   }
+  
 }
 
 AVResult CAVDecoder::setDecoderEvents( IAVDecoderEvents* pEvents, bool bAutoRelease )
@@ -108,7 +113,7 @@ AVResult CAVDecoder::read( unsigned int wFlags )
   AVCodecContext*  pAVCodecCtx = NULL;
   AVStream*        pAVStream   = NULL;
   AVPacket*        pAVPacket   = NULL;
-  AVFrame*         pAVFrame    = avcodec_alloc_frame();
+  AVFrame*         pAVFrame    = av_frame_alloc();
   bool             bExit       = false;
   
   while ( bExit == false )
@@ -131,7 +136,7 @@ AVResult CAVDecoder::read( unsigned int wFlags )
     
     pAVCodecCtx = pAVStream->codec;
    
-    avcodec_get_frame_defaults( pAVFrame );
+    av_frame_unref( pAVFrame );
     
     switch ( pAVCodecCtx->codec_type )
     {
@@ -152,25 +157,36 @@ AVResult CAVDecoder::read( unsigned int wFlags )
 	int iGotPitcure = 0;
 	avcodec_decode_video2( pAVCodecCtx, pAVFrame, &iGotPitcure, pAVPacket );
 
-    if ( pAVFrame->pts == AV_NOPTS_VALUE )
-    {
-        // Try grabbing DTS from packet
-        if ((pAVPacket->dts == AV_NOPTS_VALUE) && (pAVFrame->reordered_opaque != AV_NOPTS_VALUE))
-        {
-          pAVFrame->pts = pAVFrame->reordered_opaque;
-        }
-        else if (pAVPacket->dts != AV_NOPTS_VALUE)
-        {
-          pAVFrame->pts = pAVPacket->dts;
-        }
-        else
-        {
-          pAVFrame->pts = 0.0;
-        }
-    }
+	if ( pAVFrame->pts == AV_NOPTS_VALUE )
+	{
+	    // Try grabbing DTS from packet
+	    if ((pAVPacket->dts == AV_NOPTS_VALUE) && (pAVFrame->reordered_opaque != AV_NOPTS_VALUE))
+	    {
+	      pAVFrame->pts = pAVFrame->reordered_opaque;
+	    }
+	    else if (pAVPacket->dts != AV_NOPTS_VALUE)
+	    {
+	      pAVFrame->pts = pAVPacket->dts;
+	    }
+	    else
+	    {
+	      pAVFrame->pts = 0.0;
+	    }
+	}
 
 	if (iGotPitcure)
 	{
+	  if ( wFlags & AVD_EXIT_ON_VIDEO_KEY_FRAME  )
+	  {
+	    // Check if current frame is a key frame.
+	    if ( pAVFrame->key_frame == 1 )
+	      bExit = true;
+	  }
+	  else if ( wFlags & AVD_EXIT_ON_NEXT_VIDEO_FRAME )
+	  {
+	    bExit = true;	  
+	  }
+	  
 	  if ( m_pEvents != NULL )
 	  {    
 	    double dTime =  pAVFrame->pts * av_q2d(pAVCodecCtx->time_base);
@@ -185,47 +201,33 @@ AVResult CAVDecoder::read( unsigned int wFlags )
 	    }
 	    
 	    FMutexCtrl  mtxCtrl( m_mtxFilterGraph );
-	    if ( m_pAVFilterGraph != NULL )
+	    int         iNdx = getFilterGraphIndex( pAVCodecCtx->codec_type );
+	    if ((m_pAVFilterGraph[iNdx] != NULL) && (iNdx != -1))
 	    {
 	      // Check if filtering has been initialized or not
-	      if ( !m_pAVFilterGraph->isValid() )
+	      if ( !m_pAVFilterGraph[iNdx]->isValid() )
 	      {
-		m_pAVFilterGraph->init( pAVCodecCtx );
+		m_pAVFilterGraph[iNdx]->init( pAVCodecCtx );
 	      }
 	      
-	      bool                bMore              = true;
-	      AVFilterBufferRef*  pAVFilterBufferRef = NULL;
-	      
-	      if ( m_pAVFilterGraph->push( pAVFrame, pAVCodecCtx ) ==  eAVSucceded )
-	      {
-                while ( bMore )
+	      if ( m_pAVFilterGraph[iNdx]->push( pAVFrame ) ==  eAVSucceded )
+	      {		
+                while ( m_pAVFilterGraph[iNdx]->pop( pAVFrame ) == eAVSucceded )
                 {
-                  m_pAVFilterGraph->pop( bMore, pAVFilterBufferRef );
-		  
-                  if ( m_pEvents->OnFilteredVideoFrame( pAVFilterBufferRef, pAVStream, pAVCodecCtx, dTime ) == false )
+                  if ( m_pEvents->OnFilteredVideoFrame( pAVFrame, pAVStream, pAVCodecCtx, dTime ) == false )
                   {
                     bExit = true;
                   }
 		  
-                  m_pAVFilterGraph->unRef( pAVFilterBufferRef );
+                  m_pAVFilterGraph[iNdx]->unRef( pAVFrame );
                 }
 	      }
 	      else
 	      {
-            // @todo raise error
+		// @todo raise error
 	      }
 	    } // if ( m_pAVFilterGraph != NULL )
-	  }
-	
-	  if ( wFlags & AVD_EXIT_ON_VIDEO_KEY_FRAME  )
-	  {
-	    // Check if current frame is a key frame.
-	    if ( pAVFrame->key_frame == 1 )
-	      bExit = true;
-	  }
-	  else if ( wFlags & AVD_EXIT_ON_NEXT_VIDEO_FRAME )
-	    bExit = true;
-	  
+	  } // if ( m_pEvents != NULL )
 	}
       }; break;
       case AVMEDIA_TYPE_AUDIO:
@@ -242,6 +244,9 @@ AVResult CAVDecoder::read( unsigned int wFlags )
 	avcodec_decode_audio4( pAVCodecCtx, pAVFrame, &iGotFrame, pAVPacket );
 	if (iGotFrame)
 	{
+	  if ( wFlags & AVD_EXIT_ON_NEXT_AUDIO_FRAME )
+	    bExit = true;
+	  
 	  if ( m_pEvents != NULL )
 	  {    
 	    double dTime =  pAVFrame->pts * av_q2d(pAVCodecCtx->time_base);
@@ -250,10 +255,36 @@ AVResult CAVDecoder::read( unsigned int wFlags )
 	    {
 	      bExit = true;
 	    }
-	  }
-	
-	  if ( wFlags & AVD_EXIT_ON_NEXT_AUDIO_FRAME )
-	    bExit = true;
+	    
+	    FMutexCtrl  mtxCtrl( m_mtxFilterGraph );
+	    int         iNdx = getFilterGraphIndex( pAVCodecCtx->codec_type );
+	    if ((m_pAVFilterGraph[iNdx] != NULL) && (iNdx != -1))
+	    {
+	      // Check if filtering has been initialized or not
+	      if ( !m_pAVFilterGraph[iNdx]->isValid() )
+	      {
+		m_pAVFilterGraph[iNdx]->init( pAVCodecCtx );
+	      }
+	      
+	      if ( m_pAVFilterGraph[iNdx]->push( pAVFrame ) ==  eAVSucceded )
+	      {
+                while ( m_pAVFilterGraph[iNdx]->pop( pAVFrame ) == eAVSucceded )
+                {
+                  if ( m_pEvents->OnFilteredAudioFrame( pAVFrame, pAVStream, pAVCodecCtx, dTime ) == false )
+                  {
+                    bExit = true;
+                  }
+		  
+                  m_pAVFilterGraph[iNdx]->unRef( pAVFrame );
+                }
+	      }
+	      else
+	      {
+		// @todo raise error
+	      }
+	    } // if ( m_pAVFilterGraph != NULL )
+	  }// if ( m_pEvents != NULL )
+
 	}
 	
       }; break;
@@ -296,23 +327,42 @@ bool    CAVDecoder::isOpened() const
   return m_avInputFile.isOpened();
 }
 
-CAVFilterGraph*    CAVDecoder::setFilterGraph( CAVFilterGraph* pAVFilterGraph )
+int               CAVDecoder::getFilterGraphIndex( AVMediaType mt ) const
+{
+  switch ( mt )
+  {
+    case AVMEDIA_TYPE_VIDEO: return 0;
+    case AVMEDIA_TYPE_AUDIO: return 1;
+  }
+  
+  return -1;
+}
+
+IAVFilterGraph*    CAVDecoder::setFilterGraph( IAVFilterGraph* pAVFilterGraph )
 { 
   FMutexCtrl  _mtxCtrl( m_mtxFilterGraph );
   
-  CAVFilterGraph* _pRetVal = m_pAVFilterGraph;
+  int  iNdx = getFilterGraphIndex( pAVFilterGraph->getMediaType() );
+  if ( iNdx == -1 )
+    return NULL;
   
-  m_pAVFilterGraph = pAVFilterGraph; 
+  IAVFilterGraph* _pRetVal = m_pAVFilterGraph[iNdx];
+  
+  m_pAVFilterGraph[iNdx] = pAVFilterGraph; 
   
   return _pRetVal;
 }
 
-CAVFilterGraph*  CAVDecoder::getFilterGraph() const
+IAVFilterGraph*  CAVDecoder::getFilterGraph( AVMediaType mt ) const
 { 
-  CAVFilterGraph* _pRetVal = NULL;
-  
+  IAVFilterGraph* _pRetVal = NULL;
+
+  int  iNdx = getFilterGraphIndex( mt );
+  if ( iNdx == -1 )
+    return NULL;
+
   m_mtxFilterGraph.EnterMutex();
-    _pRetVal = m_pAVFilterGraph; 
+    _pRetVal = m_pAVFilterGraph[iNdx]; 
   m_mtxFilterGraph.LeaveMutex();
   
   return _pRetVal;
