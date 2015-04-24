@@ -24,20 +24,13 @@ extern "C"
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 #include <libavutil/avutil.h>
-#include <libavutil/fifo.h>
 }
 
 namespace libavcpp
 {
 
 CAVEncoder::CAVEncoder( )
-   : m_pAVOutputFile( NULL ),
-     m_pVideoBuffer( NULL ),
-     m_iVideoBufSize( -1 ),
-     m_pSrcAudioBuffer( NULL ),
-     m_pEncAudioBuffer( NULL ),
-     m_iAudioBufSize( -1 ),
-     m_pFifoBuffer( NULL )
+   : m_pAVOutputFile( NULL )
 {
   
 }
@@ -64,7 +57,7 @@ AVResult CAVEncoder::open(
 			    PixelFormat  dstPixFtm,
 			    int dstFps, int dstGOP,
 			    int dstBitRate,
-			    CodecID   dstVideoCodec,
+			    AVCodecID   dstVideoCodec,
 			    int dstVideoProfile
 		       )
 {
@@ -78,7 +71,7 @@ AVResult CAVEncoder::open(
     pStreams[iStream++] = CAVOutputFile::CAVStream( AVMEDIA_TYPE_VIDEO, dstVideoCodec, dstVideoProfile );
     
   if ( uiAVFlags & AV_ENCODE_AUDIO_STREAM )
-    pStreams[iStream++] = CAVOutputFile::CAVStream( AVMEDIA_TYPE_AUDIO, CODEC_ID_MP3, 0 );
+    pStreams[iStream++] = CAVOutputFile::CAVStream( AVMEDIA_TYPE_AUDIO, AV_CODEC_ID_MP3, 0 );
      
   m_pAVOutputFile = new CAVOutputFile( dstW, dstH, dstPixFtm, dstFps, dstGOP, dstBitRate, pStreams );
   if ( m_pAVOutputFile == NULL )
@@ -91,40 +84,10 @@ AVResult CAVEncoder::open(
   
   if ( uiAVFlags & AV_ENCODE_VIDEO_STREAM )
   {
-    // Determine required buffer size and allocate buffer
-    m_iVideoBufSize = avpicture_get_size(
-					  m_pAVOutputFile->getAVCodecContext(AVMEDIA_TYPE_VIDEO)->pix_fmt,
-					  m_pAVOutputFile->getAVCodecContext(AVMEDIA_TYPE_VIDEO)->width,
-					  m_pAVOutputFile->getAVCodecContext(AVMEDIA_TYPE_VIDEO)->height
-					);
-					  
-    m_pVideoBuffer = (uint8_t*)av_malloc( m_iVideoBufSize );
-    if ( m_pVideoBuffer == NULL )
-    {
-      //@todo
-    }  
   }
 
   if ( uiAVFlags & AV_ENCODE_AUDIO_STREAM )
   {
-    //Audio Buffer
-    m_iAudioBufSize   = AVCODEC_MAX_AUDIO_FRAME_SIZE;
-    m_iSrcBufferPos   = 0;
-    m_pSrcAudioBuffer = (uint8_t*)av_malloc( m_iAudioBufSize );
-    m_pEncAudioBuffer = (uint8_t*)av_malloc( m_iAudioBufSize );
-    if ( 
-         ( m_pSrcAudioBuffer == NULL ) ||
-         ( m_pEncAudioBuffer == NULL ) 
-       )
-    {
-      //@todo
-    }
-  }
-
-  m_pFifoBuffer = av_fifo_alloc(1024);
-  if ( m_pFifoBuffer == NULL )
-  {
-    //@todo
   }
 
   return eRetVal;  
@@ -165,27 +128,22 @@ AVResult CAVEncoder::write( const CAVImage* pAVFrame, unsigned int uiFlags )
     return eAVInvalidParameters;
   
   AVResult  eResult     = eAVSucceded;
-  int       iPacketSize = avcodec_encode_video( pCodecContext, m_pVideoBuffer, m_iVideoBufSize, pAVFrame->getFrame() );
   AVPacket  avPkt;      
+  int       iGotPacket  = 0;
+  
+  // Initialize av packet
   av_init_packet( &avPkt ); 
-
-  if ( iPacketSize > 0 )
+  
+  if ( avcodec_encode_video2( pCodecContext, &avPkt, pAVFrame->getFrame(), &iGotPacket ) == 0 )
   {
-    if(pCodecContext->coded_frame->key_frame)
+    if ( iGotPacket == 1 )
     {
-      avPkt.flags |= AV_PKT_FLAG_KEY;
-    }
-
-    // m_pAVPacket->pts          updated by CAVOutputFile  
-    // m_pAVPacket->stream_index updated by CAVOutputFile
-    avPkt.data= m_pVideoBuffer;
-    avPkt.size= iPacketSize;     
-
-    // Write new video packet.
-    eResult = m_pAVOutputFile->write( AVMEDIA_TYPE_VIDEO, avPkt, uiFlags );
-    
-    av_free_packet( &avPkt ); 
-  }//if ( iPacketSize > 0 )
+      // Write new video packet.
+      eResult = m_pAVOutputFile->write( AVMEDIA_TYPE_VIDEO, avPkt, uiFlags );
+      
+      av_free_packet( &avPkt ); 
+    } // if ( iGotPacket == 1 )
+  }
       
   return eResult;
 }
@@ -197,37 +155,22 @@ AVResult CAVEncoder::write( const CAVSample* pAVFrame, unsigned int uiFlags )
     return eAVStreamNotFound;
   
   AVResult  eResult     = eAVSucceded;
+  AVPacket  avPkt;
+  int       iGotPacket  = 0;
+  
+  // Initialize av packet
+  av_init_packet( &avPkt ); 
 
-  // output raw samples
-  if (av_fifo_realloc2( m_pFifoBuffer, av_fifo_size(m_pFifoBuffer) + pAVFrame->getSize(0) ) < 0)
+  if ( avcodec_encode_audio2( pCodecContext, &avPkt, pAVFrame->getFrame(), &iGotPacket ) == 0 )
   {
-    //@todo
+    if ( iGotPacket == 1 )
+    {
+      // Write new audio packet.
+      eResult = m_pAVOutputFile->write( AVMEDIA_TYPE_AUDIO, avPkt, uiFlags );
+
+      av_free_packet( &avPkt ); 
+    } // if ( iGotPacket == 1 )
   }
-  av_fifo_generic_write(m_pFifoBuffer, pAVFrame->getData(0), pAVFrame->getSize(0), NULL);
-
-  int iEncFrameSize = pCodecContext->frame_size * pCodecContext->channels *  av_get_bytes_per_sample(pCodecContext->sample_fmt);
-      
-  while ( av_fifo_size(m_pFifoBuffer) >= iEncFrameSize )
-  {
-    // Read just the amount of bytes needed by the encoder 
-    av_fifo_generic_read(m_pFifoBuffer, m_pSrcAudioBuffer, iEncFrameSize, NULL );
-    
-    int      iEncPacketSize = avcodec_encode_audio( pCodecContext, m_pEncAudioBuffer, m_iAudioBufSize, (short*)m_pSrcAudioBuffer );
-    AVPacket avPkt;
-    
-    av_init_packet( &avPkt ); 
-
-    // m_pAVPacket->pts          updated by CAVOutputFile  
-    // m_pAVPacket->stream_index updated by CAVOutputFile
-    avPkt.flags |= AV_PKT_FLAG_KEY;
-    avPkt.data   = m_pEncAudioBuffer;
-    avPkt.size   = iEncPacketSize;     
-
-    // Write new audio packet.
-    eResult = m_pAVOutputFile->write( AVMEDIA_TYPE_AUDIO, avPkt, uiFlags );
-
-    av_free_packet( &avPkt ); 
-  }  
       
   return eResult;
 }
@@ -255,41 +198,11 @@ AVResult CAVEncoder::write( const CAVFrame* pAVFrame, unsigned int uiFlags )
 
 AVResult CAVEncoder::flush( unsigned int uiFlags )
 {
-  if ( m_pVideoBuffer == NULL )
-    return  eAVInvalidSequence;
-
   return m_pAVOutputFile->flush( uiFlags );
 }
 
 AVResult CAVEncoder::close()
 {
-  if ( m_pVideoBuffer != NULL )
-  {
-    av_free( m_pVideoBuffer ); 
-    m_pVideoBuffer  = NULL;
-    m_iVideoBufSize = -1;
-  }
-  
-  if ( m_pEncAudioBuffer != NULL )
-  {
-    av_free( m_pEncAudioBuffer );
-    m_pEncAudioBuffer  = NULL;
-    m_iAudioBufSize = -1;
-  }
-
-  if ( m_pSrcAudioBuffer != NULL )
-  {
-    av_free( m_pSrcAudioBuffer );
-    m_pSrcAudioBuffer  = NULL;
-    m_iSrcBufferPos    = 0;
-  }
-
-  if ( m_pFifoBuffer != NULL )
-  {
-    av_fifo_free(m_pFifoBuffer);
-    m_pFifoBuffer = NULL;
-  }
-  
   return m_pAVOutputFile->close();
 }
 

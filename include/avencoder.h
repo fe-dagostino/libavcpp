@@ -53,7 +53,7 @@ public:
 			   PixelFormat  dstPixFtm,
 			   int dstFps, int dstGOP,
 			   int dstBitRate,
-                           CodecID dstVideoCodec,
+                           AVCodecID dstVideoCodec,
 			   int dstVideoProfile
                          );
 			 
@@ -99,13 +99,6 @@ public:
 
 private:
     CAVOutputFile*   m_pAVOutputFile;
-    uint8_t*         m_pVideoBuffer;
-    int              m_iVideoBufSize;
-    uint8_t*         m_pSrcAudioBuffer;
-    uint8_t*         m_pEncAudioBuffer;
-    int              m_iSrcBufferPos;
-    int              m_iAudioBufSize;
-    AVFifoBuffer*    m_pFifoBuffer;
 };
 
 }//namespace libavcpp
