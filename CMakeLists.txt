@@ -48,7 +48,9 @@ set(  LIBAVCPP_INCLUDE
         ./include/avoutputfile.h
         ./include/avdecoder.h
         ./include/avencoder.h
-        ./include/avfiltergraph.h
+        ./include/iavfiltergraph.h
+        ./include/videofiltergraph.h
+        ./include/audiofiltergraph.h
         ./include/avapplication.h
 )
 
@@ -66,7 +68,9 @@ set(  LIBAVCPP_SRC
         ./src/avoutputfile.cpp
         ./src/avdecoder.cpp
         ./src/avencoder.cpp
-        ./src/avfiltergraph.cpp
+        ./src/iavfiltergraph.cpp
+        ./src/videofiltergraph.cpp
+        ./src/audiofiltergraph.cpp
         ./src/avapplication.cpp
 )
 
