@@ -131,7 +131,7 @@ AVResult CAVOutputFile::open( const char* pFilename, unsigned int uiAVFlags )
   int iStreamIndex = 0;
   while( 
         (m_pDstStreams[iStreamIndex].getMediaType() != AVMEDIA_TYPE_UNKNOWN ) &&
-	(m_pDstStreams[iStreamIndex].getCodecID()   != CODEC_ID_NONE        )
+	(m_pDstStreams[iStreamIndex].getCodecID()   != AV_CODEC_ID_NONE     )
        )
   {
     if ( m_pDstStreams[iStreamIndex].getMediaType() == AVMEDIA_TYPE_VIDEO )
@@ -499,7 +499,7 @@ AVCodec*         CAVOutputFile::getVideoCodec() const
 }
 
 /* add a video output stream */
-AVStream*        CAVOutputFile::add_video_stream( int iStreamIndex, enum CodecID codec_id, int profile )
+AVStream*        CAVOutputFile::add_video_stream( int iStreamIndex, enum AVCodecID codec_id, int profile )
 {
   AVCodecContext * c  = NULL;
   AVStream *       st = NULL;
@@ -548,12 +548,12 @@ AVStream*        CAVOutputFile::add_video_stream( int iStreamIndex, enum CodecID
   c->gop_size      = m_dstGOP; /* emit one intra frame every twelve frames at most */
   c->pix_fmt       = m_dstFormat;
 
-  if (c->codec_id == CODEC_ID_MPEG2VIDEO)
+  if (c->codec_id == AV_CODEC_ID_MPEG2VIDEO)
   {
       /* just for testing, we also add B frames */
       c->max_b_frames = 2;
   }
-  if (c->codec_id == CODEC_ID_MPEG1VIDEO)
+  if (c->codec_id == AV_CODEC_ID_MPEG1VIDEO)
   {
       /* Needed to avoid using macroblocks in which some coeffs overflow.
 	This does not happen with normal video, it just happens here as
@@ -573,7 +573,7 @@ AVStream*        CAVOutputFile::add_video_stream( int iStreamIndex, enum CodecID
 /*
 * add an audio output stream
 */
-AVStream* CAVOutputFile::add_audio_stream( int iStreamIndex, enum CodecID codec_id, int profile )
+AVStream* CAVOutputFile::add_audio_stream( int iStreamIndex, enum AVCodecID codec_id, int profile )
 {
   AVCodecContext * c  = NULL;
   AVStream *       st = NULL;
