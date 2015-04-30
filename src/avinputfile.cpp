@@ -34,33 +34,28 @@ namespace libavcpp
 struct AVRawFrame
 {
   AVRawFrame()
-    : m_pAVPacket( NULL )
   {
-    // Memory allocation for AudioVideo packet to be read from file/stream.
-    m_pAVPacket = (AVPacket*)av_malloc(sizeof(AVPacket));
     // Initialize AudioVideo packet with default values
-    av_init_packet( m_pAVPacket ); 
+    av_init_packet( &m_avPacket ); 
   }
   
   ~AVRawFrame()
   {
-    if ( m_pAVPacket != NULL )
-    {
-      // Release Packet allocated bt av_read_frame
-      av_free_packet(m_pAVPacket);
-      
-      av_free( m_pAVPacket );
-      m_pAVPacket = NULL;
-    }
+    // Release Packet allocated bt av_read_frame
+    av_free_packet( &m_avPacket );
   }
+  
+  operator AVPacket*()
+  { return &m_avPacket; }
 
-  AVPacket*		m_pAVPacket;
+  AVPacket		m_avPacket;
 };
   
 CAVInputFile::CAVInputFile()
  : CAVFile(), 
    m_uiAVFlags( AV_SET_BEST_VIDEO_CODEC ),
-   m_pAVFormatContext( NULL ), 
+   m_pAVFormatContext( NULL ),
+   m_bReachedEOF( false ),
    m_pTopRawFrame( NULL ),
    m_iBAS( -1 ), m_iBVS ( -1 ),
    m_pOptBAS( NULL ), m_pOptBVS( NULL ),
@@ -136,7 +131,7 @@ AVResult CAVInputFile::read( AVStream*& pAVStream, AVPacket*& pAVPacket, bool bB
       return eAVNotEnoughMemory;
     
     // Read first available packet from file/stream
-    iResult = av_read_frame( m_pAVFormatContext, pRawFrame->m_pAVPacket );
+    iResult = av_read_frame( m_pAVFormatContext, *pRawFrame );
     if ( iResult == AVERROR_EOF )
     {
       m_bReachedEOF = true;
@@ -148,7 +143,7 @@ AVResult CAVInputFile::read( AVStream*& pAVStream, AVPacket*& pAVPacket, bool bB
     {
       CHECK_AVRESULT( iResult )
 
-      iResult = av_dup_packet( pRawFrame->m_pAVPacket );
+      iResult = av_dup_packet( *pRawFrame );
       if ( iResult < 0 )
       {
         delete pRawFrame;
@@ -202,10 +197,10 @@ AVResult CAVInputFile::read( AVStream*& pAVStream, AVPacket*& pAVPacket, bool bB
   m_pTopRawFrame = m_queueInputFrames.front();
   m_queueInputFrames.pop();
 
-  pAVStream = m_pAVFormatContext->streams[m_pTopRawFrame->m_pAVPacket->stream_index];
+  pAVStream = m_pAVFormatContext->streams[ m_pTopRawFrame->m_avPacket.stream_index ];
 
   // pAVPacket will be valid until next call to read().
-  pAVPacket = m_pTopRawFrame->m_pAVPacket;
+  pAVPacket = *m_pTopRawFrame;
   
   return eAVSucceded;
 }
