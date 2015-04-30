@@ -25,6 +25,7 @@
 extern "C"
 {
 #include <libavutil/avutil.h>
+#include <libavformat/avformat.h>
 }
 
 struct AVFormatContext;
@@ -79,14 +80,14 @@ public:
   /**
    * Read next audio video packet.
    */
-  virtual AVResult read( AVCodecContext*& pAVCodecContext, AVPacket*& pAVPacket, bool bBuffering ) {};
+  virtual AVResult read( AVStream*& pAVStream, AVPacket*& pAVPacket, bool bBuffering ) = 0;
   /**
    * Write an audio video packet.
    */
-  virtual AVResult write( AVMediaType avMediaType, AVPacket& rAVPacket, unsigned int uiAVFlags ) {};
+  virtual AVResult write( AVMediaType avMediaType, AVPacket& rAVPacket, unsigned int uiAVFlags ) = 0;
   /**
    */
-  virtual AVResult flush( unsigned int uiAVFlags ) {};
+  virtual AVResult flush( unsigned int uiAVFlags ) = 0;
   /**
    * Close file and release all alloated resources..
    */
