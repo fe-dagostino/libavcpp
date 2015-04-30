@@ -123,6 +123,8 @@ int main(int argc, char **argv)
     time_t eTime = time( NULL );
     
     time_t dTime = eTime - sTime;
+    if ( dTime == 0 ) 
+      dTime = 1;
     
     float  fps = _avDecoderEvents.getFrameCount()  / ((float)dTime);
     std::cout << "FPS=" << fps << std::endl;
