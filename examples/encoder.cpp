@@ -65,12 +65,11 @@ public:
   virtual void   OnVideoKeyFrame( const AVFrame* pAVFrame, const AVStream* pAVStream, const AVCodecContext* pAVCodecCtx, double time )
   {
     m_bStartRec = true;
-    m_dStart    = time;
   }
   
   virtual bool   OnVideoFrame( const AVFrame* pAVFrame, const AVStream* pAVStream, const AVCodecContext* pAVCodecCtx, double time )
   {
-    if ( m_bStartRec = true )
+    if ( m_bStartRec == true )
     {
       // Initialize background
       m_avBkgDB.init( m_avBackground, -1, -1, m_avBackground.getFormat() );
@@ -126,7 +125,6 @@ public:
 
 private:
   bool             m_bStartRec;
-  double           m_dStart;
   int              m_iVideoFrame;
   CAVImage         m_avBackground;
   CAVImage         m_avBkgDB;
@@ -182,6 +180,8 @@ int main(int argc, char **argv)
     time_t eTime = time( NULL );
     
     time_t dTime = eTime - sTime;
+    if ( dTime == 0 ) 
+      dTime = 1;
     
     float  fps = _avDecoderEvents.getFrameCount()  / ((float)dTime);
     std::cout << "FPS=" << fps << std::endl;
