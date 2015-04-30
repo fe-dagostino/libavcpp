@@ -29,6 +29,11 @@ namespace libavcpp
 class IAVDecoderEvents
 {
 public:
+    /***/
+    IAVDecoderEvents(){};
+    /***/
+    virtual ~IAVDecoderEvents(){};
+    
     /**
      */
     virtual void   OnVideoPacket( const AVPacket* pAVPacket, const AVStream* pAVStream, const AVCodecContext* pAVCodecContext ) {};
