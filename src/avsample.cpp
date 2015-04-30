@@ -23,7 +23,8 @@ namespace libavcpp
 {
 
 CAVSample::CAVSample()
- : m_eFormat( AV_SAMPLE_FMT_NONE ), m_pFrame( NULL )
+ : m_eFormat( AV_SAMPLE_FMT_NONE ), m_pFrame( NULL ),
+   m_iChannels( -1 ), m_iSamples( -1 ), m_iAlign( -1 )
 {
 }
 
@@ -51,7 +52,7 @@ AVResult   CAVSample::init(
   if ( pFrame != NULL )
   {
     m_pFrame = av_frame_alloc();
-    if ( pFrame == NULL ) 
+    if ( m_pFrame == NULL ) 
       return eAVNotEnoughMemory;
     
     m_pFrame->format         = pFrame->format;
