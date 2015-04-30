@@ -258,31 +258,34 @@ AVResult CAVDecoder::read( unsigned int wFlags )
 	    
 	    FMutexCtrl  mtxCtrl( m_mtxFilterGraph );
 	    int         iNdx = getFilterGraphIndex( pAVCodecCtx->codec_type );
-	    if ((m_pAVFilterGraph[iNdx] != NULL) && (iNdx != -1))
+	    if ( iNdx != -1 )
 	    {
-	      // Check if filtering has been initialized or not
-	      if ( !m_pAVFilterGraph[iNdx]->isValid() )
+	      if (m_pAVFilterGraph[iNdx] != NULL)
 	      {
-		m_pAVFilterGraph[iNdx]->init( pAVCodecCtx );
-	      }
-	      
-	      if ( m_pAVFilterGraph[iNdx]->push( pAVFrame ) ==  eAVSucceded )
-	      {
-                while ( m_pAVFilterGraph[iNdx]->pop( pAVFrame ) == eAVSucceded )
-                {
-                  if ( m_pEvents->OnFilteredAudioFrame( pAVFrame, pAVStream, pAVCodecCtx, dTime ) == false )
-                  {
-                    bExit = true;
-                  }
-		  
-                  m_pAVFilterGraph[iNdx]->unRef( pAVFrame );
-                }
-	      }
-	      else
-	      {
-		// @todo raise error
-	      }
-	    } // if ( m_pAVFilterGraph != NULL )
+		// Check if filtering has been initialized or not
+		if ( !m_pAVFilterGraph[iNdx]->isValid() )
+		{
+		  m_pAVFilterGraph[iNdx]->init( pAVCodecCtx );
+		}
+		
+		if ( m_pAVFilterGraph[iNdx]->push( pAVFrame ) ==  eAVSucceded )
+		{
+		  while ( m_pAVFilterGraph[iNdx]->pop( pAVFrame ) == eAVSucceded )
+		  {
+		    if ( m_pEvents->OnFilteredAudioFrame( pAVFrame, pAVStream, pAVCodecCtx, dTime ) == false )
+		    {
+		      bExit = true;
+		    }
+		    
+		    m_pAVFilterGraph[iNdx]->unRef( pAVFrame );
+		  }
+		}
+		else
+		{
+		  // @todo raise error
+		}
+	      } // if ( m_pAVFilterGraph != NULL )
+	    } // if ( iNdx != -1 )
 	  }// if ( m_pEvents != NULL )
 
 	}
