@@ -134,7 +134,10 @@ public:
    */
   AVCodec*	   getVideoCodec() const;
   
-private:
+protected:
+  /***/
+  virtual AVResult read( AVStream*& pAVStream, AVPacket*& pAVPacket, bool bBuffering )
+  { return eAVSucceded; }
 
 private:
   AVStream*        add_video_stream( int iStreamIndex, enum AVCodecID codec_id, int profile );
