@@ -61,6 +61,7 @@ public:
   /**
    */
   virtual AVResult read( AVStream*& pAVStream, AVPacket*& pAVPacket, bool bBuffering );
+  
   /**
    */
   virtual AVResult close();
@@ -88,7 +89,14 @@ public:
    */
   AVCodec*	   getVideoCodec() const;
   
-  
+protected:
+  /***/
+  virtual AVResult write( AVMediaType avMediaType, AVPacket& rAVPacket, unsigned int uiAVFlags )
+  { return eAVSucceded; }
+  /***/
+  virtual AVResult flush( unsigned int uiAVFlags )
+  { return eAVSucceded; }
+
 private:
   unsigned int 	        m_uiAVFlags;
   AVFormatContext*	m_pAVFormatContext;
