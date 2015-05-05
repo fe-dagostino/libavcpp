@@ -102,6 +102,12 @@ public:
    * Non const overload for getData().
    */
   unsigned char*    	  getData( int iPlane, int* pSize );
+  /**
+   * Detach current allocated memory buffer setting internal variable 
+   * members to NULL, allocated pointer will be in charge of caller
+   * and should be released with free().
+   */
+  unsigned char*    	  detachData( int iPlane, int* pSize );
   
   /**
    */

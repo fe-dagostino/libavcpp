@@ -140,6 +140,17 @@ unsigned char*       CAVImage::getData( int iPlane, int* pSize )
     return m_pFrame->data[iPlane];
 }
 
+unsigned char*       CAVImage::detachData( int iPlane, int* pSize )
+{
+  if ( pSize != NULL )
+    *pSize = getLineSize(iPlane)*getHeight();
+
+  unsigned char*  data = m_pFrame->data[iPlane];
+  m_pFrame->data[iPlane] = NULL;
+  
+  return data;
+}
+
 CAVRect              CAVImage::getRect() const
 {
   return CAVRect( 0, 0, getWidth(), getHeight() );
