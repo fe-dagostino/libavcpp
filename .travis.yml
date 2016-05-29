@@ -31,6 +31,7 @@ before_script:
   - ./configure
   - make
   - sudo make install
+  - cd ../
 # Download and install libav 
   - git clone git://git.libav.org/libav.git
   - cd libav
@@ -38,6 +39,7 @@ before_script:
   - ./configure --arch=x86_64 --cpu=x86_64 --disable-debug --enable-version3 --disable-static --enable-shared --enable-runtime-cpudetect --enable-hardcoded-tables --enable-libmp3lame --enable-libpulse --enable-libfreetype --enable-libopenjpeg --enable-avfilter --enable-frei0r
   - make
   - sudo make install
+  - cd ../
 # Download and install fedlibrary 
   - git clone git://git.code.sf.net/p/fedlibrary/git fedlibrary
   - cd fedlibrary 
