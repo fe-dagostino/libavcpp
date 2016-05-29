@@ -1,6 +1,6 @@
 
 cmake_minimum_required (VERSION 2.6)
-project(libav++ CXX)
+project(libav++ C CXX)
 
 include_directories( ./ )
 include_directories( ./include/ )
