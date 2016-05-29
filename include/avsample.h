@@ -26,6 +26,7 @@ extern "C"
 #include <libavutil/pixfmt.h>
 #include <libswscale/swscale.h>
 #include <libavcodec/avcodec.h>
+#include <libavutil/avutil.h>
 }
 
 namespace libavcpp
