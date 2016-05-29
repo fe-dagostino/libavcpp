@@ -2,6 +2,10 @@
   <img alt="Coverity Scan Build Status"
        src="https://scan.coverity.com/projects/4899/badge.svg"/>
 </a>
+<a href="https://travis-ci.org/">
+  <img alt="Travis-CI Build Status"
+       src="https://travis-ci.org/fe-dagostino/libavcpp.svg?branch=master"/>
+</a>
 
 # libav++
 C++ Wrapper and Facilities to simplify libav usage
