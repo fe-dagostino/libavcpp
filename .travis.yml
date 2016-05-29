@@ -16,7 +16,8 @@ install:
   - sudo apt-get install libpng12-dev
   - sudo apt-get install zlib1g-dev
   - sudo apt-get install frei0r-plugins      
-  - sudo apt-get install frei0r-plugins-dev  
+  - sudo apt-get install frei0r-plugins-dev
+  - sudo apt-get install freeglut3-dev
 # We want to compile with g++ 5 when rather than the default g++
   - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 90
 
