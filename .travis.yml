@@ -1,0 +1,69 @@
+language: cpp
+
+before_install:
+# We need this line to have g++4.8 available in apt
+  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  - sudo apt-get update -qq
+install:
+  - sudo apt-get install -qq gcc-4.8 g++-4.8 
+  - sudo apt-get install apt-get install build-essential
+  - sudo apt-get install doxygen
+  - sudo apt-get install make cmake cmake-gui
+  - sudo apt-get install yasm
+  - sudo apt-get install libopenjpeg2 libopenjpeg-dev libopenjpeg2-dbg
+  - sudo apt-get install libfreetype6-dev
+  - sudo apt-get install libpulse-dev
+  - sudo apt-get install libpng12-dev
+  - sudo apt-get install zlib1g-dev
+  - sudo apt-get install frei0r-plugins      
+  - sudo apt-get install frei0r-plugins-dev  
+# We want to compile with g++ 4.8 when rather than the default g++
+  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
+
+compiler:
+  - gcc
+
+before_script:
+# Download and install lame mp3 
+  - wget http://netcologne.dl.sourceforge.net/project/lame/lame/3.99/lame-3.99.5.tar.gz
+  - tar zxvf lame-3.99.5.tar.gz
+  - cd lame-3.99.5/
+  - ./configure
+  - make
+  - sudo make install
+# Download and install libav 
+  - git clone git://git.libav.org/libav.git
+  - cd libav
+  - git checkout v11.7
+  - ./configure --arch=x86_64 --cpu=x86_64 --disable-debug --enable-version3 --disable-static --enable-shared --enable-runtime-cpudetect --enable-hardcoded-tables --enable-libmp3lame --enable-libpulse --enable-libfreetype --enable-libopenjpeg --enable-avfilter --enable-frei0r
+  - make
+  - sudo make install
+# Download and install fedlibrary 
+  - git clone git://git.code.sf.net/p/fedlibrary/git fedlibrary
+  - cd fedlibrary 
+  - mkdir build 
+  - cd build
+  - cmake ../ -DFORCE_PIC=ON 
+  - make 
+  - sudo make install 
+  - sudo ldconfig 
+  - cd ../../
+# Execute cmake configuration
+  - mkdir build
+  - cd build
+  - cmake ..
+
+script: make
+
+# whitelist
+branches:
+  only:
+    - master
+
+notifications:
+  email:
+    recipients:
+      - fedagostino@gmail.com
+    on_success: change
+    on_failure: always
+
