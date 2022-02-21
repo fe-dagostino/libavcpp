@@ -16,7 +16,7 @@
 */
 
 
-#include "../include/avsample.h"
+#include "avsample.h"
 #include <memory.h>
 
 namespace libavcpp

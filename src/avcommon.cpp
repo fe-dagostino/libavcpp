@@ -16,7 +16,7 @@
 */
 
 
-#include "../include/avcommon.h"
+#include "avcommon.h"
 
 extern "C"
 {

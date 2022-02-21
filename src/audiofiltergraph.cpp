@@ -16,7 +16,7 @@
 */
 
 
-#include "../include/audiofiltergraph.h"
+#include "audiofiltergraph.h"
 
 #include "FString.h"
 

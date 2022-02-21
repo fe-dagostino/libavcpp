@@ -16,7 +16,7 @@
 */
 
 
-#include "../include/avfile.h"
+#include "avfile.h"
 #include "FMutex.h"
 
 USING_NAMESPACE_FED

@@ -16,7 +16,7 @@
 */
 
 
-#include "../include/avencoder.h"
+#include "avencoder.h"
 #include <iostream>
 
 extern "C"
@@ -54,7 +54,7 @@ AVResult CAVEncoder::open(
 			    const char* pFilename,
 			    unsigned int uiAVFlags,
 			    int dstW, int dstH,
-			    PixelFormat  dstPixFtm,
+			    AVPixelFormat  dstPixFtm,
 			    int dstFps, int dstGOP,
 			    int dstBitRate,
 			    AVCodecID   dstVideoCodec,
@@ -65,7 +65,6 @@ AVResult CAVEncoder::open(
   
   CAVOutputFile::CAVStream* pStreams = new CAVOutputFile::CAVStream[3]();
   int                       iStream  = 0;
-  
   
   if ( uiAVFlags & AV_ENCODE_VIDEO_STREAM )
     pStreams[iStream++] = CAVOutputFile::CAVStream( AVMEDIA_TYPE_VIDEO, dstVideoCodec, dstVideoProfile );

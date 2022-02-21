@@ -16,7 +16,7 @@
 */
 
 
-#include "../include/avframe.h"
+#include "avframe.h"
 
 
 namespace libavcpp

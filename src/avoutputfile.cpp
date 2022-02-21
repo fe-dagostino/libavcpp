@@ -16,8 +16,8 @@
 */
 
 
-#include "../include/avoutputfile.h"
-#include "../include/avimage.h"
+#include "avoutputfile.h"
+#include "avimage.h"
 #include "FMutexCtrl.h"
 #include "LOGGING/FLogger.h"
 
@@ -37,14 +37,14 @@ namespace libavcpp
 {
 
 CAVOutputFile::CAVOutputFile( 
-			      int         dstWidth,
-			      int         dstHeight,
-			      PixelFormat dstFormat,
-			      int         dstFPS,
-			      int         dstGOP,
-			      int         dstBitRate,
-			      CAVStream*  pDstStreams 
-			    )
+                                int           dstWidth,
+                                int           dstHeight,
+                                AVPixelFormat dstFormat,
+                                int           dstFPS,
+                                int           dstGOP,
+                                int           dstBitRate,
+                                CAVStream*    pDstStreams
+                            )
  : CAVFile(), 
    m_uiAVFlags( AV_SET_BEST_AUDIO_CODEC|AV_SET_BEST_VIDEO_CODEC ),
    m_pDstStreams( pDstStreams ),

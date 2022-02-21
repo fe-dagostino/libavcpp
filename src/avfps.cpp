@@ -16,7 +16,7 @@
 */
 
 
-#include "../include/avfps.h"
+#include "avfps.h"
 
 extern "C"
 {

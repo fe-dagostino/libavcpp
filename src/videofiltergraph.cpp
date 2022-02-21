@@ -65,11 +65,11 @@ AVResult CVideoFilterGraph::init( const AVCodecContext* pAVCodecCtx )
 }
 
 AVResult CVideoFilterGraph::init( 
-			      int iWidth, int iHeight,
-			      PixelFormat pixFormat,
-			      int iTimebaseNum, int iTimebaseDen,
-			      int iAspectRatioX, int iAspectRatioY
-			     )
+                                    int iWidth, int iHeight,
+                                    AVPixelFormat pixFormat,
+                                    int iTimebaseNum, int iTimebaseDen,
+                                    int iAspectRatioX, int iAspectRatioY
+                                )
 {
   if ( m_sFilters.IsEmpty() )
     return eAVInvalidParameters;

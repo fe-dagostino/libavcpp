@@ -16,7 +16,7 @@
 */
 
 
-#include "../include/avpoint.h"
+#include "avpoint.h"
 
 namespace libavcpp
 {

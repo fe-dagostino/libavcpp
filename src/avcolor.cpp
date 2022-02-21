@@ -16,7 +16,7 @@
 */
 
 
-#include "../include/avcolor.h"
+#include "avcolor.h"
 
 namespace libavcpp
 {

@@ -16,8 +16,8 @@
 */
 
 
-#include "../include/avdecoder.h"
-#include "../include/avimage.h"
+#include "avdecoder.h"
+#include "avimage.h"
 
 
 #include "FMutexCtrl.h"

@@ -16,7 +16,7 @@
 */
 
 
-#include "../include/avrect.h"
+#include "avrect.h"
 
 namespace libavcpp
 {

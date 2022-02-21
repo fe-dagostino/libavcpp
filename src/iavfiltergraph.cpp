@@ -16,7 +16,7 @@
 */
 
 
-#include "../include/iavfiltergraph.h"
+#include "iavfiltergraph.h"
 
 #include "FString.h"
 

@@ -16,7 +16,7 @@
 */
 
 
-#include "../include/avapplication.h"
+#include "avapplication.h"
 
 extern "C"
 {

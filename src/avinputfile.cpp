@@ -16,7 +16,7 @@
 */
 
 
-#include "../include/avinputfile.h"
+#include "avinputfile.h"
 
 extern "C"
 {
