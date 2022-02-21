@@ -73,7 +73,7 @@ private:
    * .
    */
   AVResult init(
-		int iWidth, int iHeight, PixelFormat pixFormat,
+		int iWidth, int iHeight, AVPixelFormat pixFormat,
 		int iTimebaseNum, int iTimebaseDen,
 		int iAspectRatioX, int iAspectRatioY
 	      );  

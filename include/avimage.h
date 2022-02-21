@@ -30,6 +30,7 @@ extern "C"
 #include <libswscale/swscale.h>
 #include <libavcodec/avcodec.h>
 #include <libavfilter/avfilter.h>
+#include <libavutil/imgutils.h>
 }
 
 struct SwsContext;
@@ -60,35 +61,37 @@ public:
   AVResult       init( const AVFrame* pFrame, 
 		       const AVCodecContext* pAVCodecCtx, 
 		       int dstW, int dstH, 
-		       PixelFormat dstFormat = PIX_FMT_RGB24,
+		       AVPixelFormat dstFormat = AV_PIX_FMT_RGB24,
 		       int flags = SWS_FAST_BILINEAR
 		       );
 
   /**
    *
    */
-  AVResult       init( const CAVImage& rImage, 
-		       int dstW, int dstH, 
-		       PixelFormat dstFormat = PIX_FMT_RGB24,
-		       int flags = SWS_FAST_BILINEAR );
-		       
-  /**
-   *
-   */
-  AVResult	 init( 
-		      const AVFilterBufferRef* pAVFilterBufferRef,
-		      int srcW, int srcH
-		     );
+  AVResult      init(
+                      const CAVImage& rImage,
+                      int dstW, int dstH,
+                      AVPixelFormat dstFormat = AV_PIX_FMT_RGB24,
+                      int flags = SWS_FAST_BILINEAR
+                    );
 
   /**
    *
    */
-  AVResult       init( const AVFilterBufferRef* pAVFilterBufferRef, 
-		       int srcW, int srcH,
-		       int dstW, int dstH, 
-		       PixelFormat dstFormat = PIX_FMT_RGB24,
-		       int flags = SWS_FAST_BILINEAR );
-		       
+  AVResult      init(
+                      const AVFrame* pFrame,
+                      int srcW, int srcH
+                    );
+
+  /**
+   *
+   */
+  AVResult      init( const AVFrame* pFrame,
+                      int srcW, int srcH,
+                      int dstW, int dstH,
+                      AVPixelFormat dstFormat = AV_PIX_FMT_RGB24,
+                      int flags = SWS_FAST_BILINEAR );
+
   /**
    *  @param iPlane specify n-plane for the desidered buffer. 
    *                Value for this parameter must be between 0 and 3. 
@@ -134,7 +137,7 @@ public:
   /**
    *  Return image Format.
    */
-  enum PixelFormat        getFormat() const;
+  enum AVPixelFormat      getFormat() const;
   
   /**
    *  Retrieve line size in byte.
@@ -180,12 +183,12 @@ public:
    *  @param eFormat     specify how to internaly store the image.
    */
   AVResult                load( 
-				const char* 	 pFilename,
-				int 	  	 iWidth,
-				int 	  	 iHeight,
-				enum PixelFormat eFormat
-			      );
-		
+                                const char*         pFilename,
+                                int                 iWidth,
+                                int                 iHeight,
+                                enum AVPixelFormat  eFormat
+                              );
+
   /**
    * Use alpha blending with current image and specified one.
    * 
@@ -211,12 +214,12 @@ public:
   AVResult                blend( const CAVPoint& rPos, const CAVImage& rImage, const CAVImage& rMask, const CAVColor& cr );
   
 private:
-  SwsContext*      m_pSwsContext;
-  int              m_iSize;
-  AVFrame*         m_pFrame;
-  int              m_iWidth;
-  int              m_iHeight;
-  enum PixelFormat m_eFormat;
+  SwsContext*        m_pSwsContext;
+  int                m_iSize;
+  AVFrame*           m_pFrame;
+  int                m_iWidth;
+  int                m_iHeight;
+  enum AVPixelFormat m_eFormat;
 };
 
 }//namespace libavcpp

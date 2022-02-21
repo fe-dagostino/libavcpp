@@ -50,13 +50,13 @@ public:
     virtual AVResult open( const char* pFilename,
                            unsigned int uiAVFlags,
                            int dstW, int dstH,
-			   PixelFormat  dstPixFtm,
-			   int dstFps, int dstGOP,
-			   int dstBitRate,
+                           AVPixelFormat  dstPixFtm,
+                           int dstFps, int dstGOP,
+                           int dstBitRate,
                            AVCodecID dstVideoCodec,
-			   int dstVideoProfile
+                           int dstVideoProfile
                          );
-			 
+
     /**
      * Retrieve output video width.
      * @return -1 if called before open or if no video stream has been defined; a valid

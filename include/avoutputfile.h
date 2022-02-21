@@ -71,13 +71,13 @@ public:
    * @param pDstStreams must be allocated with 'new' and terminated with CAVStream() defalut constructor. 
    */
   CAVOutputFile( 
-		  int         dstWidth, 
-		  int         dstHeight,
-		  PixelFormat dstFormat,
-		  int         dstFPS,
-		  int         dstGOP,
-		  int         dstBitRate,
-		  CAVStream*  pDstStreams 
+		  int           dstWidth,
+		  int           dstHeight,
+		  AVPixelFormat dstFormat,
+		  int           dstFPS,
+		  int           dstGOP,
+		  int           dstBitRate,
+		  CAVStream*    pDstStreams
 	       );  
   /**
    */
@@ -149,19 +149,19 @@ private:
   bool             ofs_close();
   
 private:
-  unsigned int 	        m_uiAVFlags;
+  unsigned int          m_uiAVFlags;
   CAVStream*            m_pDstStreams;
-  AVFormatContext*	m_pAVFormatContext;
+  AVFormatContext*      m_pAVFormatContext;
   int                   m_dstWidth;
   int                   m_dstHeight;
-  PixelFormat 		m_dstFormat;
+  AVPixelFormat         m_dstFormat;
   int                   m_dstFPS;
   int                   m_dstGOP;
   int                   m_dstBitRate;
   int                   m_iBAS;               // Best Audio Stream
   int                   m_iBVS;               // Best Video Stream
-  AVDictionary* 	m_optBAS; 
-  AVDictionary* 	m_optBVS;
+  AVDictionary*         m_optBAS;
+  AVDictionary*         m_optBVS;
   AVCodec*              m_pAudioCodec; 
   AVCodec*              m_pVideoCodec;
   FTList<FFile* >*      m_lstOutputFiles;
