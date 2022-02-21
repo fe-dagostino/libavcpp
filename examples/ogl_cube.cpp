@@ -68,9 +68,8 @@ public:
   
   virtual bool   OnFilteredVideoFrame( const AVFrame* pAVFrame, const AVStream* pAVStream, const AVCodecContext* pAVCodecCtx, double pst )
   {
-    
     /* Nothing to do */
-    m_avImage.init( pAVFrame, pAVCodecCtx, -1, -1, PIX_FMT_RGBA );
+    m_avImage.init( pAVFrame, pAVCodecCtx, -1, -1, AV_PIX_FMT_RGBA );
     
     return true;
   }

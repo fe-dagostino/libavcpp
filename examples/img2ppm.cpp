@@ -51,7 +51,7 @@ public:
   {
      std::cout << "Got Frame" << std::endl;
      
-     m_avImage.init( pAVFrame, pAVCodecCtx, -1, -1, PIX_FMT_RGB24 );
+     m_avImage.init( pAVFrame, pAVCodecCtx, -1, -1, AV_PIX_FMT_RGB24 );
      std::cout << "Video Frame=" << m_iVideoFrame++ << " W=" << m_avImage.getWidth() << " H=" << m_avImage.getHeight() << " LS=" << m_avImage.getLineSize( 0 ) << std::endl;
      m_avImage.saveToPPM( "image.ppm" );
      

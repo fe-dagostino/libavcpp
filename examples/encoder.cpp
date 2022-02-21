@@ -33,13 +33,13 @@ public:
     : m_iVideoFrame(0), m_bStartRec( false )
   {
     std::cout << "Open Encoder" << std::endl;
-    if ( m_avEncoder.open( pFilename, 0, 1366, 768, PIX_FMT_YUV420P, 30/*FPS*/, 10/*GOP*/, 4000000/*bit rate*/, AV_CODEC_ID_MPEG4, FF_PROFILE_MPEG4_ADVANCED_REAL_TIME ) != eAVSucceded )
+    if ( m_avEncoder.open( pFilename, 0, 1366, 768, AV_PIX_FMT_YUV420P, 30/*FPS*/, 10/*GOP*/, 4000000/*bit rate*/, AV_CODEC_ID_MPEG4, FF_PROFILE_MPEG4_ADVANCED_REAL_TIME ) != eAVSucceded )
     {
       std::cout << "Failed to open Encoder" << std::endl;
       exit(-1);
     }
    
-    if ( m_avBackground.load( pBackground, -1, -1, PIX_FMT_RGBA ) != eAVSucceded )
+    if ( m_avBackground.load( pBackground, -1, -1, AV_PIX_FMT_RGBA ) != eAVSucceded )
     {
       std::cout << "Failed to load background image" << std::endl;
       exit(-1);
@@ -80,27 +80,27 @@ public:
       int dstPosY = 406;
       
       printf( "Input Video Frame [%d] %dx%d\n", m_iVideoFrame, pAVCodecCtx->width, pAVCodecCtx->height );
-      if ( m_avInputImage.init( pAVFrame, pAVCodecCtx, frameW, frameH, PIX_FMT_RGB24 ) != eAVSucceded )
+      if ( m_avInputImage.init( pAVFrame, pAVCodecCtx, frameW, frameH, AV_PIX_FMT_RGB24 ) != eAVSucceded )
       {
-	  std::cout << "Error on m_avImage.init()" << std::endl;
+        std::cout << "Error on m_avImage.init()" << std::endl;
       }
       
       m_avBkgDB.blend( CAVPoint( dstPosX, dstPosY ), m_avInputImage );
 
       // Preparing output frame in YUV
-      m_avImage.init( m_avBkgDB, -1, -1, PIX_FMT_YUV420P ); 
+      m_avImage.init( m_avBkgDB, -1, -1, AV_PIX_FMT_YUV420P );
       
       CAVFrame  _avFrame( &m_avImage );
       if ( m_avEncoder.write( &_avFrame, 0 ) != eAVSucceded )
       {
-	std::cout << "Failed to write frame=" << std::endl;
+        std::cout << "Failed to write frame=" << std::endl;
       }
       _avFrame.detach();
       
       
       if ( m_iVideoFrame++ > 5000 )
       {
-	return false;
+        return false;
       }
     }
     return true;
