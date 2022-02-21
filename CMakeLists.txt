@@ -16,14 +16,14 @@ ENDIF()
 
 IF( CMAKE_BUILD_TYPE STREQUAL "Debug" )
   set(  LIBAVCPP_VERSION
-	-3.3.0-debug
+        -3.3.0-debug
     )
   set(  FEDLIB_VER
         -3.2.0-debug
      )
 ELSE()
   set(  LIBAVCPP_VERSION
-	-3.3.0
+        -3.3.0
     )
   set(  FEDLIB_VER
         -3.2.0
